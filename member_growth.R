@@ -362,41 +362,41 @@ getting_file_dir <- function(base_dir=getwd(), output_file_name='member_growth.x
 
 
 
-output_xlsx <- function(df_list, sales_output_dir){
+output_xlsx <- function(df_list, report_output_dir){
     wb <- createWorkbook()    
     # each mall
     for (df_nm in names(df_list)){
         current_sheet <- createSheet(wb, sheetName=df_nm)
-        current_df <- df_list[df_nm]
+        current_df <- df_list[[df_nm]]
         addDataFrame(current_df, current_sheet)
     }
     
     
     #save xlsx
-    saveWorkbook(wb, sales_output_dir)
+    saveWorkbook(wb, report_output_dir)
 }
 
 
-# 
-member_report <- test_func(member_df = member, end_time = '2015-12-12')
-sales_report <- spending_func(my_db, end_time = "2015-12-12")
-tenant_report <- tenant_func(my_db, end_time = "2015-12-12")
+#########################
+# acutal FUNCTION CALLS #
+#########################
+# member_report <- test_func(member_df = member, end_time = '2015-12-12')
+# sales_report <- spending_func(my_db, end_time = "2015-12-12")
+# tenant_report <- tenant_func(my_db, end_time = "2015-12-12")
 
-# member_report <- test_func(member_df = member)
-# sales_report <- spending_func(my_db)
-# tenant_report <- tenant_func(my_db)
+member_report <- test_func(member_df = member)
+sales_report <- spending_func(my_db)
+tenant_report <- tenant_func(my_db)
 
 df_list <- list("member_report" = member_report, 
                 "sales_report" = sales_report,
                 "tenant_report" = tenant_report)
 
-# acutal FUNCTION CALLS
-# final <- getting_gift_df(my_db, rpt_dur = 20)
 report_output_dir <- getting_file_dir()
-# sales_output_dir <- getting_file_dir('~/src/all_reports')
+# report_output_dir <- getting_file_dir('~/src/all_reports')
 # prep excel 
 
-output_xlsx(df_list, sales_output_dir) 
+output_xlsx(df_list, report_output_dir) 
 
 print(paste(now(), 'Success!', sep = " "))
 
