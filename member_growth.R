@@ -114,6 +114,11 @@ spending_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c
     ##
     ## HARDCODED non-shop list
     
+    # frozen member
+    frozen_user <- tbl(db_con, 'member') %>% 
+        filter(status != 0) %>%
+        select(member_id)
+    
     # mall_data 
     mall <- tbl(db_con, 'mall') %>% 
         select(mall_id, 
@@ -129,12 +134,15 @@ spending_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c
         filter(transaction_datetime >= start_time & 
                    transaction_datetime < end_time &
                    invoice_original_amount > 0) %>% 
-        inner_join(shop, by="shop_id")
+        inner_join(shop, by="shop_id") %>%
+        anti_join(frozen_user, by = "member_id")
     
     cum_unique_sales <- tbl(db_con, 'sales') %>% 
-        filter(invoice_original_amount > 0) %>%
+        filter(invoice_original_amount > 0 & 
+                   transaction_datetime < end_time) %>%
         select(shop_id, member_id) %>%
         inner_join(shop, by = 'shop_id') %>%
+        anti_join(frozen_user, by = "member_id") %>%
         group_by(mall_name) %>% 
         summarize(cum_unique_purchaser = count(distinct(member_id))) %>%
         collect()
@@ -143,8 +151,11 @@ spending_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c
     sales_point_issue <- tbl(db_con, 'sales_point_issue') %>% 
         filter(created_datetime >= start_time & 
                    created_datetime < end_time) %>% 
+        anti_join(frozen_user, by = "member_id") %>%
         transmute(sales_id, 
                   point_issue = point)
+        
+    # check
     if(any(duplicated(sales_point_issue$sales_id))){
         warning('DUPLICATED SALES_ID in sales_point_issue')
     }
@@ -214,6 +225,11 @@ tenant_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c(1
     ##
     ## HARDCODED non-shop list
     
+    # frozen member
+    frozen_user <- tbl(db_con, 'member') %>% 
+        filter(status != 0) %>%
+        select(member_id)
+    
     # mall_data 
     mall <- tbl(db_con, 'mall') %>% 
         select(mall_id, 
@@ -255,19 +271,22 @@ tenant_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c(1
     sales_sub <- tbl(db_con, 'sales') %>% 
         filter(transaction_datetime >= start_time & 
                    transaction_datetime < end_time &
-                   invoice_original_amount > 0) 
+                   invoice_original_amount > 0) %>%
+        anti_join(frozen_user, by = 'member_id')
     
     ## LAST MONTH
     sales_last_month <- tbl(db_con, 'sales') %>% 
         filter(transaction_datetime >= last_month_start & 
                    transaction_datetime < last_month_end &
-                   invoice_original_amount > 0) 
+                   invoice_original_amount > 0) %>%
+        anti_join(frozen_user, by = 'member_id')
     
     ## CURRENT MONTH CUM SUM
     sales_current_cum <- tbl(db_con, 'sales') %>% 
         filter(transaction_datetime >= current_month_start& 
                    transaction_datetime < current_month_end &
-                   invoice_original_amount > 0) 
+                   invoice_original_amount > 0) %>%
+        anti_join(frozen_user, by = 'member_id')
 
     ###############
     ### AGGREGATION
@@ -278,6 +297,7 @@ tenant_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c(1
                   current_amount = sum(sales_settlement_amount),
                   current_transactions = n()) %>% 
         collect()
+    
     if (nrow(current) == 0){
         current <- tbl_df(data.frame(shop_id = integer(), 
                                      current_unique_purchaser = integer(),
@@ -305,6 +325,7 @@ tenant_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c(1
                   cum_amount = sum(sales_settlement_amount),
                   cum_transactions = n()) %>% 
         collect()
+    
     if (nrow(cum_sum) == 0){
         cum_sum <- tbl_df(data.frame(shop_id = integer(), 
                                      cum_unique_purchaser = integer(),
