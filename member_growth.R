@@ -114,6 +114,9 @@ spending_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c
     ##
     ## HARDCODED non-shop list
     
+    # frozen member
+    frozen_user <- tbl(db_con, 'member') %>% 
+        filter(status != 0) 
     # mall_data 
     mall <- tbl(db_con, 'mall') %>% 
         select(mall_id, 
@@ -132,7 +135,8 @@ spending_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c
         inner_join(shop, by="shop_id")
     
     cum_unique_sales <- tbl(db_con, 'sales') %>% 
-        filter(invoice_original_amount > 0) %>%
+        filter(invoice_original_amount > 0 & 
+                   transaction_datetime < end_time) %>%
         select(shop_id, member_id) %>%
         inner_join(shop, by = 'shop_id') %>%
         group_by(mall_name) %>% 
