@@ -210,8 +210,8 @@ tenant_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c(1
         last_month_end <- floor_date(start_time, unit = "month")
         last_month_start <- floor_date(last_month_end - ddays(7), unit = 'month')    
     }
-    print(last_month_end)
-    print(last_month_start)
+    # print(last_month_end)
+    # print(last_month_start)
     
     
     
@@ -276,17 +276,21 @@ tenant_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c(1
     
     ## LAST MONTH
     sales_last_month <- tbl(db_con, 'sales') %>% 
-        filter(transaction_datetime >= last_month_start & 
-                   transaction_datetime < last_month_end &
+        filter(transaction_datetime < start_time & 
                    invoice_original_amount > 0) %>%
         anti_join(frozen_user, by = 'member_id')
+#         filter(transaction_datetime >= last_month_start & 
+#                    transaction_datetime < last_month_end &
+#                    invoice_original_amount > 0) %>%
     
     ## CURRENT MONTH CUM SUM
     sales_current_cum <- tbl(db_con, 'sales') %>% 
-        filter(transaction_datetime >= current_month_start& 
-                   transaction_datetime < current_month_end &
+        filter(transaction_datetime < end_time & 
                    invoice_original_amount > 0) %>%
         anti_join(frozen_user, by = 'member_id')
+#         filter(transaction_datetime >= current_month_start& 
+#                    transaction_datetime < current_month_end &
+#                    invoice_original_amount > 0) %>%
 
     ###############
     ### AGGREGATION
@@ -337,16 +341,16 @@ tenant_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c(1
     final <- current %>% 
         full_join(last_mon, by = "shop_id") %>%
         full_join(cum_sum, by = 'shop_id') %>% 
-        mutate_each(funs(ifelse(is.na(.), 0, .))) %>%
         inner_join(shop, by = 'shop_id') %>%
         arrange(mall_name, shop_id) %>%
         mutate(filler1 = "", filler2 = "", filler3 = "",
                last_avg_amount = last_amount/last_unique_purchaser,
                cum_avg_amount = cum_amount/cum_unique_purchaser) %>%
+        mutate_each(funs(ifelse(is.na(.), 0, .))) %>%
         select(mall_name, shop_code, shop_id, shop_name, contract_type, category_sc,
                last_unique_purchaser, current_unique_purchaser, cum_unique_purchaser,filler1,
                last_amount, current_amount, cum_amount, filler2,
-               current_transactions, last_transactions, cum_transactions, filler3, 
+               last_transactions, current_transactions, cum_transactions, filler3, 
                last_avg_amount, cum_avg_amount) %>% 
         mutate(current_month_start = current_month_start,
                current_month_end = current_month_end,
@@ -401,9 +405,9 @@ output_xlsx <- function(df_list, report_output_dir){
 #########################
 # acutal FUNCTION CALLS #
 #########################
-# member_report <- test_func(member_df = member, end_time = '2015-12-12')
-# sales_report <- spending_func(my_db, end_time = "2015-12-12")
-# tenant_report <- tenant_func(my_db, end_time = "2015-12-12")
+# member_report <- test_func(member_df = member, end_time = '2015-12-19')
+# sales_report <- spending_func(my_db, end_time = "2015-12-19")
+# tenant_report <- tenant_func(my_db, end_time = "2015-12-19")
 
 member_report <- test_func(member_df = member)
 sales_report <- spending_func(my_db)
