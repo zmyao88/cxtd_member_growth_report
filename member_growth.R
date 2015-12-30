@@ -342,10 +342,11 @@ tenant_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c(1
         full_join(last_mon, by = "shop_id") %>%
         full_join(cum_sum, by = 'shop_id') %>% 
         inner_join(shop, by = 'shop_id') %>%
+        # right_join(shop, by = 'shop_id') %>%
         arrange(mall_name, shop_id) %>%
         mutate(filler1 = "", filler2 = "", filler3 = "",
-               last_avg_amount = last_amount/last_unique_purchaser,
-               cum_avg_amount = cum_amount/cum_unique_purchaser) %>%
+               last_avg_amount = last_amount/last_transactions,
+               cum_avg_amount = cum_amount/cum_transactions) %>%
         mutate_each(funs(ifelse(is.na(.), 0, .))) %>%
         select(mall_name, shop_code, shop_id, shop_name, contract_type, category_sc,
                last_unique_purchaser, current_unique_purchaser, cum_unique_purchaser,filler1,
@@ -405,9 +406,9 @@ output_xlsx <- function(df_list, report_output_dir){
 #########################
 # acutal FUNCTION CALLS #
 #########################
-# member_report <- test_func(member_df = member, end_time = '2015-12-19')
-# sales_report <- spending_func(my_db, end_time = "2015-12-19")
-# tenant_report <- tenant_func(my_db, end_time = "2015-12-19")
+# member_report <- test_func(member_df = member, end_time = '2015-12-26')
+# sales_report <- spending_func(my_db, end_time = "2015-12-26")
+# tenant_report <- tenant_func(my_db, end_time = "2015-12-26")
 
 member_report <- test_func(member_df = member)
 sales_report <- spending_func(my_db)
