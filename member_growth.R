@@ -341,8 +341,8 @@ tenant_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c(1
     final <- current %>% 
         full_join(last_mon, by = "shop_id") %>%
         full_join(cum_sum, by = 'shop_id') %>% 
-        inner_join(shop, by = 'shop_id') %>%
-        # right_join(shop, by = 'shop_id') %>%
+        # inner_join(shop, by = 'shop_id') %>%
+        right_join(shop, by = 'shop_id') %>%
         arrange(mall_name, shop_id) %>%
         mutate(filler1 = "", filler2 = "", filler3 = "",
                last_avg_amount = last_amount/last_transactions,
