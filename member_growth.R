@@ -267,6 +267,15 @@ tenant_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c(1
     
     ############ 
     # sales data
+    ### supposed fucked data ###
+    fucked_sales <- tbl(db_con, 'sales') %>% 
+        filter(transaction_datetime >= '2015-12-07' & 
+                   transaction_datetime < '2015-12-12'  &
+                   invoice_original_amount > 0 &
+                   shop_id == 144) %>%
+        inner_join(frozen_user, by = 'member_id')
+    ### end here ###
+    
     ## CURRENT WEEK
     sales_sub <- tbl(db_con, 'sales') %>% 
         filter(transaction_datetime >= start_time & 
@@ -278,7 +287,8 @@ tenant_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c(1
     sales_last_month <- tbl(db_con, 'sales') %>% 
         filter(transaction_datetime < start_time & 
                    invoice_original_amount > 0) %>%
-        anti_join(frozen_user, by = 'member_id')
+        anti_join(frozen_user, by = 'member_id') %>%
+        dplyr::union(fucked_sales)
 #         filter(transaction_datetime >= last_month_start & 
 #                    transaction_datetime < last_month_end &
 #                    invoice_original_amount > 0) %>%
@@ -287,7 +297,8 @@ tenant_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c(1
     sales_current_cum <- tbl(db_con, 'sales') %>% 
         filter(transaction_datetime < end_time & 
                    invoice_original_amount > 0) %>%
-        anti_join(frozen_user, by = 'member_id')
+        anti_join(frozen_user, by = 'member_id') %>%
+        dplyr::union(fucked_sales)
 #         filter(transaction_datetime >= current_month_start& 
 #                    transaction_datetime < current_month_end &
 #                    invoice_original_amount > 0) %>%
@@ -406,9 +417,9 @@ output_xlsx <- function(df_list, report_output_dir){
 #########################
 # acutal FUNCTION CALLS #
 #########################
-# member_report <- test_func(member_df = member, end_time = '2015-12-26')
-# sales_report <- spending_func(my_db, end_time = "2015-12-26")
-# tenant_report <- tenant_func(my_db, end_time = "2015-12-26")
+# member_report <- test_func(member_df = member, end_time = '2016-1-30')
+# sales_report <- spending_func(my_db, end_time = "2016-1-30")
+# tenant_report <- tenant_func(my_db, end_time = "2016-1-30")
 
 member_report <- test_func(member_df = member)
 sales_report <- spending_func(my_db)
