@@ -154,6 +154,7 @@ spending_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c
         anti_join(frozen_user, by = "member_id") %>%
         transmute(sales_id, 
                   point_issue = point)
+    
         
     # check
     if(any(duplicated(sales_point_issue$sales_id))){
@@ -178,11 +179,26 @@ spending_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c
         collect()
     
     # knitting 2 parts together
-    final_member_sales <- sales_data %>% 
-        full_join(point_data, by = 'mall_name') %>%
-        full_join(cum_unique_sales, by = 'mall_name') %>%
-        collect() %>%
-        mutate_each(funs(ifelse(is.na(.), 0, .)))
+    ##### if nrow == 0 create fake sales_data & point_data DF 
+    if (nrow(sales_data) == 0 | nrow(point_data) == 0) {
+        print('no sales data this week')
+        final_member_sales <- tbl_df(data.frame(mall_name = character(), 
+                                                n_uniq_member = integer(),
+                                                total_purchase = integer(),
+                                                n_transaction = integer(),
+                                                avg_transaction_amount = integer(),
+                                                total_point_issue = integer(),
+                                                cum_unique_purchaser = integer()
+                                                ))
+        
+    }else {
+        final_member_sales <- sales_data %>% 
+            full_join(point_data, by = 'mall_name') %>%
+            full_join(cum_unique_sales, by = 'mall_name') %>%
+            collect() %>%
+            mutate_each(funs(ifelse(is.na(.), 0, .)))    
+    }
+    
         
     
     return(final_member_sales)
@@ -417,9 +433,9 @@ output_xlsx <- function(df_list, report_output_dir){
 #########################
 # acutal FUNCTION CALLS #
 #########################
-# member_report <- test_func(member_df = member, end_time = '2016-1-30')
-# sales_report <- spending_func(my_db, end_time = "2016-1-30")
-# tenant_report <- tenant_func(my_db, end_time = "2016-1-30")
+# member_report <- test_func(member_df = member, end_time = '2016-2-13')
+# sales_report <- spending_func(my_db, end_time = "2016-2-13")
+# tenant_report <- tenant_func(my_db, end_time = "2016-2-13")
 
 member_report <- test_func(member_df = member)
 sales_report <- spending_func(my_db)
