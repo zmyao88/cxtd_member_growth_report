@@ -187,7 +187,7 @@ spending_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c
     
     # knitting 2 parts together
     ##### if nrow == 0 create fake sales_data & point_data DF 
-    if (nrow(sales_data) == 0 | nrow(point_data) == 0) {
+    if (nrow(sales_data) == 0) {
         print('no sales data this week')
         final_member_sales <- tbl_df(data.frame(mall_name = character(), 
                                                 n_uniq_member = integer(),
@@ -197,6 +197,17 @@ spending_func <- function(db_con, end_time=today(), rpt_dur=7, non_shop_list = c
                                                 total_point_issue = integer(),
                                                 cum_unique_purchaser = integer()
                                                 ))
+        
+    }else if (nrow(point_data) == 0) {
+        
+        point_data <- tbl_df(data.frame(mall_name = character(), 
+                                       total_point_issue = integer()))
+        
+        final_member_sales <- sales_data %>% 
+            full_join(point_data, by = 'mall_name') %>%
+            full_join(cum_unique_sales, by = 'mall_name') %>%
+            collect() %>%
+            mutate_each(funs(ifelse(is.na(.), 0, .)))    
         
     }else {
         final_member_sales <- sales_data %>% 
