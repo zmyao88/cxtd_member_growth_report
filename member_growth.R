@@ -57,11 +57,16 @@ test_func <- function(member_df, end_time, rpt_dur=7){
                        tpq_member = member_count, 
                        tpq_cum = cum_sum)
 
+    fstd_df <- get_member_growth(member_df, start_time = start_time, end_time = end_time, m_source = "07") %>%
+                select(mydate,
+                        fstd_member = member_count, 
+                        fstd_cum = cum_sum)
     # combine DFs and output
     output <- hq_df %>% 
                     inner_join(rh_df, by="mydate") %>%
                     inner_join(itiandi_df, by='mydate') %>%
-                    inner_join(tpq_df, by = 'mydate')
+                    inner_join(tpq_df, by = 'mydate') %>% 
+                    inner_join(fstd_df, by = 'mydate')
     return(output)
     
 }
