@@ -4,7 +4,7 @@ require(gdata)
 require(xlsx)
 
 
-my_db <- src_postgres(dbname = 'cxtd', host = 'localhost', port = 5432, user = 'cxtd', password = 'xintiandi')
+my_db <- src_postgres(dbname = 'cxtd', host = 'localhost', port = 5432, user = 'cxtd', password = 'CxTd1234!')
 
 member <- data.frame(tbl(my_db, 'member'))
 wechat_member <- data.frame(tbl(my_db, 'wechat_member'))
