@@ -6,13 +6,13 @@ require(xlsx)
 
 my_db <- src_postgres(dbname = 'cxtd', host = 'localhost', port = 5432, user = 'cxtd', password = 'CxTd1234!')
 
-member <- data.frame(tbl(my_db, 'member'))
-wechat_member <- data.frame(tbl(my_db, 'wechat_member'))
-coupon <- data.frame(tbl(my_db, 'coupon'))
+# member <- data.frame(tbl(my_db, 'member'))
+# wechat_member <- data.frame(tbl(my_db, 'wechat_member'))
+# coupon <- data.frame(tbl(my_db, 'coupon'))
 
 unique(member$member_source)
 
-member <- tbl_df(data.frame(tbl(my_db, 'member'))) %>% mutate(created_datetime = ymd_hms(created_datetime))
+member <- tbl(my_db, 'member') %>% collect() %>% mutate(created_datetime = ymd_hms(created_datetime))
 #####
 # current_date <- today()
 # duration <- ddays(7)
